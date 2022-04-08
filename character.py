@@ -54,6 +54,7 @@ class Ritsuko(Character):
     id = 6
     name = '律子'
     camp = '杀人狂'
+    freeze = 1
     life = 2
     abilities = {'刀': 'kill'}
 

@@ -6,6 +6,7 @@ Click star if you like it!
 I love Rena forever!
 """
 import asyncio
+import nest_asyncio
 import random
 from time import sleep
 
@@ -14,6 +15,7 @@ from mirai_extensions.trigger import InterruptControl, Filter
 
 import character
 
+nest_asyncio.apply()
 
 # 后面会用到的各种列表
 admin = [2498561872]  # 管理员qq
@@ -23,7 +25,7 @@ hero_list = []
 killer_list = []
 neutral_list = []
 player_list = []  # 玩家列表，字典嵌套数组，这样的结构你喜欢吗
-ritsuko_qq = []
+ritsuko_s = []
 voter_list = []
 choose_list = []
 actions = []
@@ -62,7 +64,7 @@ def init():
     killer_list.clear()
     neutral_list.clear()
     player_list.clear()
-    ritsuko_qq.clear()
+    ritsuko_s.clear()
     voter_list.clear()
     choose_list.clear()
     actions.clear()
@@ -81,7 +83,7 @@ async def tell_id(event: GroupMessage):
 # 这里绝路要求做伪随机，尽量提高蕾娜处于前几个位置的概率。不过伪随机挺麻烦的，暂时采用真随机
 def distribute():
     random.shuffle(id_list)
-    for x in range(0, 2):
+    for x in range(0, 8):
         player_list[x].update({'character_id': id_list[x], 'tickets': 0})
     get_ability(player_list)
 
@@ -307,7 +309,7 @@ def cal_effect():
 
     # 普通刀
     for kill in kills_valid:
-        if not (get_player(kill['sender'])['character_id'] >= 6 and get_player(kill['receiver'])['character_id'] == 5):
+        if not (get_player(kill['sender'])['character_id'] == 7 and get_player(kill['receiver'])['character_id'] == 5):
             if not get_player(kill['receiver'])['character'].is_god:
                 get_player(kill['receiver'])['character'].life -= 1
 
@@ -319,16 +321,18 @@ def cal_effect():
 # 通知查验
 async def tell_check(event: GroupMessage):
     for check in checks_valid:
-        camp = get_player(check['receiver'])['character'].camp
-        await bot.send_temp_message(get_player(check['sender'])['qq'], event.group.id,
-                                    [str(check['receiver']), '号玩家是', camp])
+        if get_player(check['sender']) is not None:
+            camp = get_player(check['receiver'])['character'].camp
+            await bot.send_temp_message(get_player(check['sender'])['qq'], event.group.id,
+                                        [str(check['receiver']), '号玩家是', camp])
     checks_valid.clear()
 
 
 # 通知阻止
 async def tell_stop(event: GroupMessage):
     for stop in stops_valid:
-        await bot.send_temp_message(get_player(stop['receiver'])['qq'], event.group.id, ['你今晚的行动被阻止了'])
+        if get_player(stop['receiver']) is not None:
+            await bot.send_temp_message(get_player(stop['receiver'])['qq'], event.group.id, ['你今晚的行动被阻止了'])
     stops_valid.clear()
 
 
@@ -407,9 +411,11 @@ async def vote_result(event: GroupMessage):
         await bot.send_group_message(event.group.id, [str(out_player['id']), '号玩家', At(out_player['qq']), '得票最多，即将出局。'])
         for player in player_list:
             if player['character_id'] == 6:
-                ritsuko_qq.append(player['qq'])
-        if len(ritsuko_qq) > 0 and ritsuko_qq[0] == out_player['qq']:
+                ritsuko_s.append(player)
+        if len(ritsuko_s) > 0 and ritsuko_s[0]['qq'] == out_player['qq'] and get_player(ritsuko_s[0]['id'])[
+            'character'].freeze == 1:
             if await inc.wait(ritsuko, timeout=60):
+                get_player(ritsuko_s[0]['id'])['character'].freeze = 0
                 await bot.send_group_message(event.group.id, ['律子玩家使用技能，跳过投票阶段。'])
             else:
                 player_list.remove(out_player)
@@ -445,7 +451,7 @@ async def vote_result(event: GroupMessage):
 # 律子的特殊技能
 @Filter(GroupMessage)
 def ritsuko(event: GroupMessage):
-    if str(event.message_chain) == '我是律子' and event.sender.id == ritsuko_qq[0]:
+    if str(event.message_chain) == '我是律子' and event.sender.id == ritsuko_s[0]['qq']:
         return True
 
 
@@ -466,9 +472,11 @@ def confirm_alive():
 
 # 投票后的广播
 async def broadcast_alive(event: GroupMessage):
-    msg = '当前存活：\n'
+    msg = ['当前存活：\n']
     for player in player_list:
-        msg += str(player['id']) + '号玩家\n'
+        msg.append(str(player['id']) + '号玩家')
+        msg.append(At(player['qq']))
+        msg.append('\n')
     await bot.send_group_message(event.group.id, msg)
 
 
@@ -506,26 +514,26 @@ if __name__ == '__main__':
 
     @bot.on(GroupMessage)
     async def start_game(event: GroupMessage, i=1, night=1):
-        init()
+        #        init()
         if event.sender.id in admin and str(event.message_chain) == '开始游戏':
             await bot.send_group_message(event.group.id, "寒蝉杀准备开始，游戏玩法请见群公告。输入 加入 以参与游戏")
-            while len(player_list) < 2:
+            while len(player_list) < 8:
                 @Filter(GroupMessage)
                 def waiter_join(event_n: GroupMessage):
-                    #                    if event_n.sender.id in [player['qq'] for player in player_list]:
-                    #                        return 0
                     if str(event_n.message_chain) == '加入':
+                        if event_n.sender.id in [player['qq'] for player in player_list]:
+                            return 0
                         player_list.append({'id': i, 'qq': event_n.sender.id})
                         return event_n.sender.id
 
                 attender_id = await inc.wait(waiter_join)
-                #                if attender_id == 0:
-                #                    await bot.send_group_message(event.group.id, ["请不要重复报名"])
-                #                else:
-                await bot.send_group_message(event.group.id,
+                if attender_id == 0:
+                    await bot.send_group_message(event.group.id, ["请不要重复报名"])
+                else:
+                    await bot.send_group_message(event.group.id,
                                              [At(attender_id), " 报名成功！当前报名人数为：", str(len(player_list))])
                 i += 1
-            await bot.send_group_message(event.group.id, "人数已凑齐，游戏将在10秒钟后开始！")
+            await bot.send_group_message(event.group.id, "人数已凑齐，游戏将在5秒钟后开始！")
             sleep(5)
             await tell_id(event)
             distribute()
@@ -553,7 +561,7 @@ if __name__ == '__main__':
                 if not await victory(event):
                     break
                 await bot.send_group_message(event.group.id, ["进入讨论阶段"])
-                sleep(5)
+                sleep(90)
                 await bot.send_group_message(event.group.id, ["讨论阶段结束，开始投票。"])
                 while len(voter_list) < len(player_list):
                     msg = await inc.wait(vote)
