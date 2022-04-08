@@ -6,7 +6,6 @@ Click star if you like it!
 I love Rena forever!
 """
 import asyncio
-import nest_asyncio
 import random
 from time import sleep
 
@@ -15,7 +14,6 @@ from mirai_extensions.trigger import InterruptControl, Filter
 
 import character
 
-nest_asyncio.apply()
 
 # 后面会用到的各种列表
 admin = [2498561872]  # 管理员qq
