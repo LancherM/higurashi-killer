@@ -8,7 +8,7 @@ class Character:
     is_killer = False
     is_alive = True
     is_god = False
-    abilities = []
+    abilities = {}
 
 
 class Keiichi(Character):
@@ -48,6 +48,7 @@ class Akasaka(Character):
     name = '赤坂'
     camp = '中立'
     abilities = {}
+    is_god = True
 
 
 class Ritsuko(Character):
@@ -75,6 +76,22 @@ class Takano(Character):
     abilities = {'刀': 'kill_t', '阻止': 'stop'}
 
 
+class Rika(Character):
+    id = 9
+    name = '梨花'
+    camp = '主角团'
+    life = 2
+    abilities = {}
+
+
+class Teppei(Character):
+    id = 10
+    name = '铁平'
+    camp = '杀人狂'
+    is_god = True
+    abilities = {'刀': 'kill'}
+
+
 def init(character_id):
     if character_id == 1:
         return Keiichi()
@@ -92,6 +109,10 @@ def init(character_id):
         return Dog()
     elif character_id == 8:
         return Takano()
+    elif character_id == 9:
+        return Rika()
+    elif character_id == 10:
+        return Teppei()
 
 
 
