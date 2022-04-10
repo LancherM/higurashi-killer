@@ -5,8 +5,6 @@ Click star if you like it!
 蕾娜赛高！
 I love Rena forever!
 """
-import asyncio
-import nest_asyncio
 import random
 from time import sleep
 
@@ -15,11 +13,13 @@ from mirai_extensions.trigger import InterruptControl, Filter
 
 import character
 
-nest_asyncio.apply()
 
 # 后面会用到的各种列表
-admin = [2498561872]  # 管理员qq
-id_list = random.sample([1, 2, 3, 4, 9], 4)+[5, 7, 8]+[random.choice([6, 10])]
+admin = [2498561872, 2210939842, 3281894365, 1206010394, 22808716, 2487483917, 751328746, 2392458028]  # 管理员qq
+id_list = random.sample([1, 2, 3, 4, 9, 13, 12], 4) + [random.choice([14, 5])] + [
+    random.choice([6, 10])] + random.sample([7, 8, 11], 2)
+# id_list = [1, 2, 3, 14, 7, 11, 6, 13]
+# id_list = [1, 14, 11]
 dog_list = []
 hero_list = []
 killer_list = []
@@ -35,6 +35,9 @@ protects_valid = []
 kills_valid = []
 checks_valid = []
 kill_rs_valid = []
+check_os_valid = []
+kill_os_valid = []
+kill_oos_valid = []
 
 bot = Mirai(
     qq=2497872808,  # 改成你的机器人的 QQ 号
@@ -53,9 +56,13 @@ orders = {
     '5': '免疫山狗队员【山狗队员杀人指令对赤坂无效，该行动裁判不会提前告知山狗队员】，前两夜免死。\n无主动技能',
     '6': '两条命；被票时可亮出律子角色身份牌，当日跳过票人阶段；可杀人。\n指令：\n刀 A 效果：杀掉编号为A的玩家  例子：刀 1\n在投票阶段票数最多即将出局时，可在群内回复 我是律子 以避免出局',
     '7': '可杀人\n指令：\n刀 A 效果：杀掉编号为A的玩家',
-    '8': '免死。可阻止一人行动（两天内不可同一人）；队员全部阵亡后可杀人\n指令：\n刀 A 效果：杀掉编号为A的玩家  例子：刀 1\n阻止 A  效果：阻止编号为A和编号为B的玩家  例子：阻止 3',
+    '8': '免死。可阻止一人行动（两天内不可同一人）；队员全部阵亡后可杀人\n指令：\n刀 A 效果：杀掉编号为A的玩家  例子：刀 1\n阻止 A  效果：阻止编号为A的玩家  例子：阻止 3',
     '9': '两条命。\n无主动技能',
-    '10': '免死，可杀人。\n指令：\n刀 A 效果：杀掉编号为A的玩家'
+    '10': '免死，可杀人。\n指令：\n刀 A 效果：杀掉编号为A的玩家',
+    '11': '两条命。详细查验（裁判告知小此木玩家被查验角色的角色牌)(冷却一夜）。可杀人（冷却一夜）\n指令：\n查验 A  效果：查验编号为A的玩家的角色  例子：查验 1\n刀 A 效果：杀掉编号为A的玩家  例子：刀 1',
+    '12': '阻止对诗音无效。可杀人（冷却一夜）。\n指令：\n刀 A 效果：杀掉编号为A的玩家  例子：刀 1',
+    '13': '第一夜免死，可阻止一位角色的行动并使自己当夜无敌（限一次）\n指令：\n阻止 A  效果：阻止编号为A的玩家  例子：阻止 4',
+    '14': '可杀人（限一次），详细查验（裁判告知大石玩家被查验角色的角色牌）（冷却一夜）\n指令：\n查验 A  效果：查验编号为A的玩家的角色  例子：查验 1\n刀 A 效果：杀掉编号为A的玩家  例子：刀 1'
 }
 
 
@@ -86,7 +93,7 @@ async def tell_id(event: GroupMessage):
 def distribute():
     random.shuffle(id_list)
     if id_list is not None:
-        for x in range(0, 8):
+        for x in range(0, 3):
             player_list[x].update({'character_id': id_list[x], 'tickets': 0})
     get_ability(player_list)
 
@@ -100,11 +107,11 @@ def get_ability(tar):
 # 通知每个人自己的角色
 async def tell_character():
     for player in player_list:
-        if player['character'].id in [7, 8]:
+        if player['character'].id in [7, 8, 11]:
             dog_list.append(player)
-        elif player['character'].id in [1, 2, 3, 4, 9]:
+        elif player['character'].id in [1, 2, 3, 4, 9, 12, 13]:
             hero_list.append(player)
-        elif player['character'].id == 5:
+        elif player['character'].id in [5, 14]:
             neutral_list.append(player)
         elif player['character'].id in [6, 10]:
             killer_list.append(player)
@@ -131,6 +138,8 @@ async def tell_action():
 def choose_action(event: FriendMessage):
     msg = str(event.message_chain)
     params = msg.split(' ')
+    if params[0] == '结束' and event.sender.id in admin:
+        return ['结束']
     if params[0] == 'pass':
         choose_list.append(event.sender.id)
         return ['跳过成功', event.sender.id]
@@ -162,6 +171,8 @@ def choose_action(event: FriendMessage):
                 return ['参数输入错误', sender_qq]
             elif res == 6:
                 return ['该技能无法作用于自己', sender_qq]
+            elif res == 7:
+                return ['技能冷却中', sender_qq]
         else:
             return ['指令错误，请重新输入。', sender_qq]
 
@@ -182,13 +193,21 @@ def check_ability(params, a, character_s, sender_id, p_l, d_l):
                 if int(params[x]) == sender_id:
                     return 6
                 actions.append({'sender': sender_id, 'receiver': int(params[x]), 'name': 'stop'})
-                return 0
+            return 0
         else:
             return 1
     elif a == 'check' and len(params) == 2:
         if int(params[1]) == sender_id:
             return 6
+
         actions.append({'sender': sender_id, 'receiver': int(params[1]), 'name': 'check'})
+        return 0
+    elif a == 'check_o' and len(params) == 2:
+        if int(params[1]) == sender_id:
+            return 6
+        elif character_s.cooling['check_o'] > 0:
+            return 7
+        actions.append({'sender': sender_id, 'receiver': int(params[1]), 'name': 'check_o'})
         return 0
     elif a == 'stop' and len(params) == 2:
         if int(params[1]) == sender_id:
@@ -197,13 +216,11 @@ def check_ability(params, a, character_s, sender_id, p_l, d_l):
             return 2
         else:
             actions.append({'sender': sender_id, 'receiver': int(params[1]), 'name': 'stop'})
-            character_s.prevent = int(params[1])
             return 0
     elif a == 'protect' and len(params) == 2:
         if character_s.prevent == int(params[1]):
             return 2
         else:
-            character_s.prevent = int(params[1])
             actions.append({'sender': sender_id, 'receiver': int(params[1]), 'name': 'protect'})
             return 0
     elif a == 'kill_r' and len(params) == 2:
@@ -219,6 +236,31 @@ def check_ability(params, a, character_s, sender_id, p_l, d_l):
             return 6
         actions.append({'sender': sender_id, 'receiver': int(params[1]), 'name': 'kill'})
         return 0
+    elif a == 'kill_o' and len(params) == 2:
+        if int(params[1]) == sender_id:
+            return 6
+        if character_s.cooling['kill_o'] > 0:
+            return 7
+        else:
+            actions.append({'sender': sender_id, 'receiver': int(params[1]), 'name': 'kill_o'})
+            return 0
+    elif a == 'kill_oo' and len(params) == 2:
+        if int(params[1]) == sender_id:
+            return 6
+        if character_s.freeze == 1:
+            actions.append({'sender': sender_id, 'receiver': int(params[1]), 'name': 'kill_oo'})
+            return 0
+        else:
+            return 1
+    elif a == 'stop_h' and len(params) == 2:
+        if int(params[1]) == sender_id:
+            return 6
+        if character_s.freeze == 1:
+            actions.append({'sender': sender_id, 'receiver': int(params[1]), 'name': 'stop'})
+            actions.append({'sender': sender_id, 'receiver': sender_id, 'name': 'protect'})
+            return 0
+        else:
+            return 1
     elif a == 'kill_t' and len(params) == 2:
         if int(params[1]) == sender_id:
             return 6
@@ -238,9 +280,15 @@ def calculate(act):
     kills = [a for a in act if a['name'] == 'kill']
     kill_rs = [a for a in act if a['name'] == 'kill_r']
     checks = [a for a in act if a['name'] == 'check']
+    check_os = [a for a in act if a['name'] == 'check_o']
+    kill_os = [a for a in act if a['name'] == 'kill_o']
+    kill_oos = [a for a in act if a['name'] == 'kill_oo']
 
     # 阻止效果计算
     def cal_stop(stop_n):
+        if get_player(stop_n['receiver'])['character_id'] == 12:
+            return False
+
         # 得到上一个stop
         def get_last_stop(st):
             for s in stops:
@@ -286,12 +334,25 @@ def calculate(act):
     for check in checks:
         if cal_check(check):
             checks_valid.append(check)
+    for check_o in check_os:
+        if cal_check(check_o):
+            check_os_valid.append(check_o)
+    for kill_o in kill_os:
+        if cal_kill(kill_o):
+            kill_os_valid.append(kill_o)
+    for kill_oo in kill_oos:
+        if cal_kill(kill_oo):
+            kill_oos_valid.append(kill_oo)
+
     stops.clear()
     protects.clear()
     kills.clear()
     kill_rs.clear()
     checks.clear()
     actions.clear()
+    check_os.clear()
+    kill_os.clear()
+    kill_oos.clear()
 
 
 def get_player(i):
@@ -302,10 +363,6 @@ def get_player(i):
 
 # 计算效果
 def cal_effect():
-    # 圭一阻止
-    for player in player_list:
-        if player['id'] in [stop['sender'] for stop in stops_valid]:
-            player['character'].freeze = 0
     # 蕾娜强制刀
     for player in player_list:
         if player['id'] in [kill_r['sender'] for kill_r in kill_rs_valid]:
@@ -320,19 +377,55 @@ def cal_effect():
             if not get_player(kill['receiver'])['character'].is_god:
                 get_player(kill['receiver'])['character'].life -= 1
 
+    # 冷却刀
+    for kill_o in kill_os_valid:
+        if not get_player(kill_o['receiver'])['character'].is_god:
+            get_player(kill_o['receiver'])['character'].life -= 1
+            get_player(kill_o['sender'])['character'].cooling['kill_o'] = 2
+
+    # 一次性刀
+    for kill_oo in kill_oos_valid:
+        if not get_player(kill_oo['receiver'])['character'].is_god:
+            get_player(kill_oo['receiver'])['character'].life -= 1
+            get_player(kill_oo['sender'])['character'].freeze = 0
+
+    # 保护
+    for protect in protects_valid:
+        get_player(protect['sender'])['character'].prevent = protect['receiver']
+
+    # 阻止
+    for stop in stops_valid:
+        if get_player(stop['sender'])['character_id'] in [1, 13]:
+            get_player(stop['sender'])['character'].freeze = 0
+        else:
+            get_player(stop['sender'])['character'].prevent = stop['receiver']
+
     protects_valid.clear()
     kills_valid.clear()
     kill_rs_valid.clear()
+    kill_os_valid.clear()
+    kill_oos_valid.clear()
 
 
 # 通知查验
 async def tell_check():
     for check in checks_valid:
-        if get_player(check['sender']) is not None:
+        if get_player(check['sender']) is not None and get_player(check['receiver']) is not None:
             camp = get_player(check['receiver'])['character'].camp
             await bot.send_friend_message(get_player(check['sender'])['qq'],
                                           [str(check['receiver']), '号玩家是', camp])
     checks_valid.clear()
+
+
+# 通知精准查验
+async def tell_check_detail():
+    for check_o in check_os_valid:
+        if get_player(check_o['sender']) is not None and get_player(check_o['receiver']) is not None:
+            name = get_player(check_o['receiver'])['character'].name
+            await bot.send_friend_message(get_player(check_o['sender'])['qq'],
+                                          [str(check_o['receiver']), '号玩家是', name])
+            get_player(check_o['sender'])['character'].cooling['check_o'] = 2
+    check_os_valid.clear()
 
 
 # 通知阻止
@@ -347,7 +440,7 @@ async def tell_stop():
 def judge_death():
     new_death = []
     for player in player_list:
-        if player['character'].life == 0:
+        if player['character'].life <= 0:
             player['character'].is_alive = False
             new_death.append(player)
             player_list.remove(player)
@@ -380,6 +473,8 @@ async def tell_result(event: GroupMessage, new_death):
 def vote(event: GroupMessage):
     alive_qq_list = [player['qq'] for player in player_list if player['character'].is_alive]
     alive_id_list = [player['id'] for player in player_list if player['character'].is_alive]
+    if str(event.message_chain) == '结束':
+        return ['结束']
     if str(event.message_chain).isdigit():
         if event.sender.id not in alive_qq_list:
             return [At(event.sender.id), ' 抱歉，您已死亡或不是玩家，无法投票']
@@ -395,8 +490,11 @@ def vote(event: GroupMessage):
             get_player(int(str(event.message_chain)))['tickets'] += 1
             return [At(event.sender.id), ' 投票成功']
     elif str(event.message_chain) == 'pass':
-        voter_list.append(event.sender.id)
-        return [At(event.sender.id), ' 弃权成功']
+        if event.sender.id in voter_list:
+            return [At(event.sender.id), ' 抱歉，一人只能投一次票']
+        else:
+            voter_list.append(event.sender.id)
+            return [At(event.sender.id), ' 弃权成功']
     else:
         return []
 
@@ -470,6 +568,23 @@ def disable_akasaka(night):
                 player['character'].is_god = False
 
 
+# 羽入特殊技能失效
+def disable_hanyuu(night):
+    if night > 1:
+        for player in player_list:
+            if player['character_id'] == 13:
+                player['character'].is_god = False
+
+
+# 冷却
+def cooling_down():
+    for player in player_list:
+        if player['character_id'] in [11, 12, 14]:
+            for key, value in player['character'].cooling.items():
+                if player['character'].cooling[key] > 0:
+                    player['character'].cooling[key] -= 1
+
+
 # 判定死亡与确定存活人数。如果有人死亡就把他从player_list中删去
 def confirm_alive():
     for player in player_list:
@@ -524,7 +639,7 @@ if __name__ == '__main__':
         #        init()
         if event.sender.id in admin and str(event.message_chain) == '开始游戏':
             await bot.send_group_message(event.group.id, "寒蝉杀准备开始，游戏玩法请见群公告。输入 加入 以参与游戏")
-            while len(player_list) < 8:
+            while len(player_list) < 3:
                 @Filter(GroupMessage)
                 def waiter_join(event_n: GroupMessage):
                     if str(event_n.message_chain) == '加入':
@@ -545,35 +660,48 @@ if __name__ == '__main__':
             await tell_id(event)
             distribute()
             await tell_character()
-            await tell_company()
+            #            await tell_company()
             while await victory(event):
                 await bot.send_group_message(event.group.id, ["第", str(night), "天夜晚开始。"])
                 await tell_action()
 
                 while len(choose_list) < len(player_list):
                     list1 = await inc.wait(choose_action)
+                    if list1 == ['结束']:
+                        await bot.send_group_message(event.group.id, ['选择阶段结束'])
+                        break
                     msg1 = list1[0]
                     sender_id = list1[1]
+                    print('choose:', choose_list)
                     await bot.send_friend_message(sender_id, msg1)
 
                 choose_list.clear()
                 calculate(actions)
                 cal_effect()
+                for player in player_list:
+                    if player['character_id'] == 3:
+                        print('preventM:', player['character'].prevent)
+                    if player['character_id'] == 4:
+                        print('preventS:', player['character'].prevent)
+                    if player['character_id'] == 8:
+                        print('preventS:', player['character'].prevent)
                 new_death = judge_death()
                 await tell_check()
+                await tell_check_detail()
                 await tell_stop()
+                print(new_death)
                 await tell_result(event, new_death)
                 await broadcast_alive(event)
 
                 if not await victory(event):
                     break
                 await bot.send_group_message(event.group.id, ["进入讨论阶段"])
-                sleep(90)
+                sleep(5)
                 await bot.send_group_message(event.group.id, ["讨论阶段结束，开始投票。"])
                 while len(voter_list) < len(player_list):
-                    msg = await inc.wait(vote, timeout=30)
-                    if msg is None:
-                        voter_list.append(0)
+                    msg = await inc.wait(vote)
+                    if msg == ['结束']:
+                        break
                     if not msg == []:
                         await bot.send_group_message(event.group.id, msg)
 
@@ -582,6 +710,9 @@ if __name__ == '__main__':
                 voter_list.clear()
                 night += 1
                 disable_akasaka(night)
+                disable_hanyuu(night)
+                cooling_down()
+            init()
             return
 
 

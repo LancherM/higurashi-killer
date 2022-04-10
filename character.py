@@ -92,6 +92,41 @@ class Teppei(Character):
     abilities = {'刀': 'kill'}
 
 
+class Okonogi(Character):
+    id = 11
+    name = '小此木'
+    camp = '山狗'
+    life = 2
+    cooling = {'check_o': 0, 'kill_o': 0}
+    abilities = {'查验': 'check_o', '刀': 'kill_o'}
+
+
+class Shion(Character):
+    id = 12
+    name = '诗音'
+    camp = '主角团'
+    cooling = {'kill_o': 0}
+    abilities = {'刀': 'kill_o'}
+
+
+class Hanyuu(Character):
+    id = 13
+    name = '羽入'
+    camp = '主角团'
+    is_god = True
+    freeze = 1
+    abilities = {'阻止': 'stop_h'}
+
+
+class Ooishi(Character):
+    id = 14
+    name = '大石'
+    camp = '中立'
+    freeze = 1
+    cooling = {'check_o': 0}
+    abilities = {'查验': 'check_o', '刀': 'kill_oo'}
+
+
 def init(character_id):
     if character_id == 1:
         return Keiichi()
@@ -113,6 +148,14 @@ def init(character_id):
         return Rika()
     elif character_id == 10:
         return Teppei()
+    elif character_id == 12:
+        return Shion()
+    elif character_id == 11:
+        return Okonogi()
+    elif character_id == 13:
+        return Hanyuu()
+    elif character_id == 14:
+        return Ooishi()
 
 
 
