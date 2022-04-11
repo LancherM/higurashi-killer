@@ -9,17 +9,17 @@ import random
 from time import sleep
 
 from mirai import Mirai, WebSocketAdapter, At, GroupMessage, FriendMessage
+from mirai.models import NewFriendRequestEvent
 from mirai_extensions.trigger import InterruptControl, Filter
 
 import character
 
-
 # 后面会用到的各种列表
 admin = [2498561872, 2210939842, 3281894365, 1206010394, 22808716, 2487483917, 751328746, 2392458028]  # 管理员qq
-id_list = random.sample([1, 2, 3, 4, 9, 13, 12], 4) + [random.choice([14, 5])] + [
-    random.choice([6, 10])] + random.sample([7, 8, 11], 2)
+# id_list = random.sample([ 3, 4, 9, 13, 12], 3) + [random.choice([14, 5])] + [6, 10] + random.sample([7, 8, 11], 2) + [1, 2]
 # id_list = [1, 2, 3, 14, 7, 11, 6, 13]
 # id_list = [1, 14, 11]
+# id_list = random.sample([ 3, 4, 9, 13, 12 , 1, 2], 4) + [14] + [random.choice([6, 10])] + random.sample([7, 8, 11], 2)
 dog_list = []
 hero_list = []
 killer_list = []
@@ -29,6 +29,7 @@ ritsuko_s = []
 voter_list = []
 choose_list = []
 actions = []
+satoshi_qq = []
 
 stops_valid = []
 protects_valid = []
@@ -49,8 +50,8 @@ bot = Mirai(
 inc = InterruptControl(bot)
 
 orders = {
-    '1': '可查验一名角色。可阻止两名玩家行动（限1次）。\n指令：\n查验 A  效果：查验编号为A的玩家的阵营  例子：查验 1\n阻止 A B  效果：阻止编号为A和编号为B的玩家  例子：阻止 3 4',
-    '2': '可查验一名角色。可杀人且无视免死（限1次）。\n指令：\n查验 A  效果：查验编号为A的玩家的阵营  例子：查验 1\n刀 A 效果：无视免死杀掉编号为A的玩家  例子：刀 1',
+    '1': '第一夜免死。可查验一名角色。可阻止两名玩家行动（限1次）。\n指令：\n查验 A  效果：查验编号为A的玩家的阵营  例子：查验 1\n阻止 A B  效果：阻止编号为A和编号为B的玩家  例子：阻止 3 4',
+    '2': '第一夜免死。可查验一名角色。可杀人且无视免死（限1次）。\n指令：\n查验 A  效果：查验编号为A的玩家的阵营  例子：查验 1\n刀 A 效果：无视免死杀掉编号为A的玩家  例子：刀 1',
     '3': '可保护一人令其当晚无敌，允许自保，但不可连续保护同一个人。\n指令：\n保护 A  效果：保护编号为A的玩家  例子：保护 3',
     '4': '可阻止1人当晚行动，但无法连续两天阻止同一个人，该行动裁判会告知被阻止者。\n指令：\n阻止 A  效果：阻止编号为A的玩家  例子：阻止 4',
     '5': '免疫山狗队员【山狗队员杀人指令对赤坂无效，该行动裁判不会提前告知山狗队员】，前两夜免死。\n无主动技能',
@@ -61,8 +62,9 @@ orders = {
     '10': '免死，可杀人。\n指令：\n刀 A 效果：杀掉编号为A的玩家',
     '11': '两条命。详细查验（裁判告知小此木玩家被查验角色的角色牌)(冷却一夜）。可杀人（冷却一夜）\n指令：\n查验 A  效果：查验编号为A的玩家的角色  例子：查验 1\n刀 A 效果：杀掉编号为A的玩家  例子：刀 1',
     '12': '阻止对诗音无效。可杀人（冷却一夜）。\n指令：\n刀 A 效果：杀掉编号为A的玩家  例子：刀 1',
-    '13': '第一夜免死，可阻止一位角色的行动并使自己当夜无敌（限一次）\n指令：\n阻止 A  效果：阻止编号为A的玩家  例子：阻止 4',
-    '14': '可杀人（限一次），详细查验（裁判告知大石玩家被查验角色的角色牌）（冷却一夜）\n指令：\n查验 A  效果：查验编号为A的玩家的角色  例子：查验 1\n刀 A 效果：杀掉编号为A的玩家  例子：刀 1'
+    '13': '第一夜免死，可使自己与另一位玩家当夜无敌（限一次）\n指令：\n保护 A  效果：保护编号为A的玩家  例子：保护 4',
+    '14': '可杀人（限一次），详细查验（裁判告知大石玩家被查验角色的角色牌）（冷却一夜）\n指令：\n查验 A  效果：查验编号为A的玩家的角色  例子：查验 1\n刀 A 效果：杀掉编号为A的玩家  例子：刀 1',
+    '15': '死后可投票。\n无主动技能'
 }
 
 
@@ -77,6 +79,7 @@ def init():
     voter_list.clear()
     choose_list.clear()
     actions.clear()
+    satoshi_qq.clear()
 
 
 # 告诉每个玩家自己的id
@@ -90,10 +93,10 @@ async def tell_id(event: GroupMessage):
 
 # 分配角色
 # 这里绝路要求做伪随机，尽量提高蕾娜处于前几个位置的概率。不过伪随机挺麻烦的，暂时采用真随机
-def distribute():
+def distribute(id_list):
     random.shuffle(id_list)
     if id_list is not None:
-        for x in range(0, 3):
+        for x in range(0, len(id_list)):
             player_list[x].update({'character_id': id_list[x], 'tickets': 0})
     get_ability(player_list)
 
@@ -109,8 +112,10 @@ async def tell_character():
     for player in player_list:
         if player['character'].id in [7, 8, 11]:
             dog_list.append(player)
-        elif player['character'].id in [1, 2, 3, 4, 9, 12, 13]:
+        elif player['character'].id in [1, 2, 3, 4, 9, 12, 13, 15]:
             hero_list.append(player)
+            if player['character'].id == 15:
+                satoshi_qq.append(player['qq'])
         elif player['character'].id in [5, 14]:
             neutral_list.append(player)
         elif player['character'].id in [6, 10]:
@@ -123,8 +128,9 @@ async def tell_character():
 
 # 告诉山狗队员自己的队友
 async def tell_company():
-    await bot.send_friend_message(dog_list[0]['qq'], ["您的队友是", str(dog_list[1]['id']), "号"])
-    await bot.send_friend_message(dog_list[1]['qq'], ["您的队友是", str(dog_list[0]['id']), "号"])
+    dog_id = [str(dog['id']) + '号' for dog in dog_list]
+    for dog in dog_list:
+        await bot.send_friend_message(dog['qq'], ["山狗阵营成员是"] + dog_id)
 
 
 # 提示选择夜晚行动
@@ -140,6 +146,8 @@ def choose_action(event: FriendMessage):
     params = msg.split(' ')
     if params[0] == '结束' and event.sender.id in admin:
         return ['结束']
+    if params[0] == '停止' and event.sender.id in admin:
+        return ['停止']
     if params[0] == 'pass':
         choose_list.append(event.sender.id)
         return ['跳过成功', event.sender.id]
@@ -256,7 +264,7 @@ def check_ability(params, a, character_s, sender_id, p_l, d_l):
         if int(params[1]) == sender_id:
             return 6
         if character_s.freeze == 1:
-            actions.append({'sender': sender_id, 'receiver': int(params[1]), 'name': 'stop'})
+            actions.append({'sender': sender_id, 'receiver': int(params[1]), 'name': 'protect'})
             actions.append({'sender': sender_id, 'receiver': sender_id, 'name': 'protect'})
             return 0
         else:
@@ -283,9 +291,13 @@ def calculate(act):
     check_os = [a for a in act if a['name'] == 'check_o']
     kill_os = [a for a in act if a['name'] == 'kill_o']
     kill_oos = [a for a in act if a['name'] == 'kill_oo']
+    times = [0]
 
     # 阻止效果计算
     def cal_stop(stop_n):
+        if times[0] > 100:
+            times[0] = 0
+            return True
         if get_player(stop_n['receiver'])['character_id'] == 12:
             return False
 
@@ -298,6 +310,7 @@ def calculate(act):
         if stop_n['sender'] not in [a['receiver'] for a in stops]:
             return True
         else:
+            times[0] += 1
             res = cal_stop(get_last_stop(stop_n))
             return not res
 
@@ -441,8 +454,10 @@ def judge_death():
     new_death = []
     for player in player_list:
         if player['character'].life <= 0:
+            print(player)
             player['character'].is_alive = False
             new_death.append(player)
+            print(new_death)
             player_list.remove(player)
             if player in dog_list:
                 dog_list.remove(player)
@@ -452,6 +467,8 @@ def judge_death():
                 neutral_list.remove(player)
             elif player in killer_list:
                 killer_list.remove(player)
+        else:
+            print('血量', player['character'].life, player['character'].life <= 0)
     return new_death
 
 
@@ -471,9 +488,11 @@ async def tell_result(event: GroupMessage, new_death):
 # 投票
 @Filter(GroupMessage)
 def vote(event: GroupMessage):
-    alive_qq_list = [player['qq'] for player in player_list if player['character'].is_alive]
+    alive_qq_list = [player['qq'] for player in player_list if player['character'].is_alive] + satoshi_qq
     alive_id_list = [player['id'] for player in player_list if player['character'].is_alive]
-    if str(event.message_chain) == '结束':
+    if str(event.message_chain) == '停止' and event.sender.id in admin:
+        return ['停止']
+    if str(event.message_chain) == '结束' and event.sender.id in admin:
         return ['结束']
     if str(event.message_chain).isdigit():
         if event.sender.id not in alive_qq_list:
@@ -572,7 +591,7 @@ def disable_akasaka(night):
 def disable_hanyuu(night):
     if night > 1:
         for player in player_list:
-            if player['character_id'] == 13:
+            if player['character_id'] in [1, 2, 13]:
                 player['character'].is_god = False
 
 
@@ -610,110 +629,150 @@ async def victory(event: GroupMessage):
         await bot.send_group_message(event.group.id, ["游戏结束，无人生还，平局。"])
         return False
     elif len(dog_list) == 0 and len(killer_list) == 0 and len(hero_list) == 0:
-        await bot.send_group_message(event.group.id, ["游戏结束，胜利者为赤坂！"])
+        await bot.send_group_message(event.group.id, ["游戏结束，胜利者为中立！"])
         return False
     elif len(dog_list) == 0 and len(killer_list) == 0:
         if len(neutral_list) == 0:
             await bot.send_group_message(event.group.id, ["游戏结束，胜利者为主角团！"])
         else:
-            await bot.send_group_message(event.group.id, ["游戏结束，胜利者为主角团和赤坂！"])
+            await bot.send_group_message(event.group.id, ["游戏结束，胜利者为主角团和中立！"])
         return False
     elif len(hero_list) == 0 and len(killer_list) == 0:
         if len(neutral_list) == 0:
             await bot.send_group_message(event.group.id, ["游戏结束，胜利者为山狗！"])
         else:
-            await bot.send_group_message(event.group.id, ["游戏结束，胜利者为山狗和赤坂！"])
+            await bot.send_group_message(event.group.id, ["游戏结束，胜利者为山狗和中立！"])
         return False
     elif len(hero_list) == 0 and len(dog_list) == 0 and len(neutral_list) == 0:
         await bot.send_group_message(event.group.id, ["游戏结束，胜利者为杀人狂！"])
         return False
+    elif len(hero_list) == 0 and len(neutral_list) == 0 and len(dog_list) == 1 and len(killer_list) == 1:
+        if dog_list[0]['character_id'] == 8 and killer_list[0]['character_id'] == 10:
+            await bot.send_group_message(event.group.id, ["游戏结束，鹰野和铁平幸存，平局"])
     else:
         return True
 
 
 # 主程序
 if __name__ == '__main__':
+    @bot.on(NewFriendRequestEvent)
+    async def allow_request(event: NewFriendRequestEvent):
+        await bot.allow(event)
 
     @bot.on(GroupMessage)
     async def start_game(event: GroupMessage, i=1, night=1):
         #        init()
-        if event.sender.id in admin and str(event.message_chain) == '开始游戏':
-            await bot.send_group_message(event.group.id, "寒蝉杀准备开始，游戏玩法请见群公告。输入 加入 以参与游戏")
-            while len(player_list) < 3:
-                @Filter(GroupMessage)
-                def waiter_join(event_n: GroupMessage):
-                    if str(event_n.message_chain) == '加入':
-                        #                        if event_n.sender.id in [player['qq'] for player in player_list]:
-                        #                            return 0
-                        player_list.append({'id': i, 'qq': event_n.sender.id})
-                        return event_n.sender.id
-
-                attender_id = await inc.wait(waiter_join)
-                if attender_id == 0:
-                    await bot.send_group_message(event.group.id, ["请不要重复报名"])
-                else:
-                    await bot.send_group_message(event.group.id,
-                                                 [At(attender_id), " 报名成功！当前报名人数为：", str(len(player_list))])
-                i += 1
-            await bot.send_group_message(event.group.id, "人数已凑齐，游戏将在5秒钟后开始！")
-            sleep(5)
-            await tell_id(event)
-            distribute()
-            await tell_character()
-            #            await tell_company()
-            while await victory(event):
-                await bot.send_group_message(event.group.id, ["第", str(night), "天夜晚开始。"])
-                await tell_action()
-
-                while len(choose_list) < len(player_list):
-                    list1 = await inc.wait(choose_action)
-                    if list1 == ['结束']:
-                        await bot.send_group_message(event.group.id, ['选择阶段结束'])
-                        break
-                    msg1 = list1[0]
-                    sender_id = list1[1]
-                    print('choose:', choose_list)
-                    await bot.send_friend_message(sender_id, msg1)
-
-                choose_list.clear()
-                calculate(actions)
-                cal_effect()
-                for player in player_list:
-                    if player['character_id'] == 3:
-                        print('preventM:', player['character'].prevent)
-                    if player['character_id'] == 4:
-                        print('preventS:', player['character'].prevent)
-                    if player['character_id'] == 8:
-                        print('preventS:', player['character'].prevent)
-                new_death = judge_death()
-                await tell_check()
-                await tell_check_detail()
-                await tell_stop()
-                print(new_death)
-                await tell_result(event, new_death)
-                await broadcast_alive(event)
-
-                if not await victory(event):
-                    break
-                await bot.send_group_message(event.group.id, ["进入讨论阶段"])
-                sleep(5)
-                await bot.send_group_message(event.group.id, ["讨论阶段结束，开始投票。"])
-                while len(voter_list) < len(player_list):
-                    msg = await inc.wait(vote)
-                    if msg == ['结束']:
-                        break
-                    if not msg == []:
-                        await bot.send_group_message(event.group.id, msg)
-
-                await vote_result(event)
-                await broadcast_alive(event)
-                voter_list.clear()
-                night += 1
-                disable_akasaka(night)
-                disable_hanyuu(night)
-                cooling_down()
-            init()
+        if event.sender.id in admin and str(event.message_chain) == '开始游戏 8':
+            id_list = random.sample([3, 4, 9, 13, 12, 15], 3) + [14] + [random.choice([6, 10])] + random.sample(
+                [7, 8, 11], 2) + [random.choice([1, 2])]
+            await bot.send_group_message(event.group.id, "寒蝉杀准备开始，游戏玩法请见群公告。输入 加入 以参与游戏。当前为8人局。不要发表情包！！！")
+        elif event.sender.id in admin and str(event.message_chain) == '开始游戏 10':
+            id_list = random.sample([3, 4, 9, 13, 12, 15], 3) + [random.choice([14, 5])] + [6, 10] + random.sample(
+                [7, 8, 11], 2) + [1, 2]
+            await bot.send_group_message(event.group.id, "寒蝉杀准备开始，游戏玩法请见群公告。输入 加入 以参与游戏。当前为10人局。不要发表情包！！！")
+        elif event.sender.id in admin and str(event.message_chain) == '开始游戏 11':
+            id_list = random.sample([3, 4, 9, 13, 12, 15, 1, 2], 6) + [random.choice([6, 10])] + [7, 8, 11] + [random.choice([14, 5])]
+            await bot.send_group_message(event.group.id, "寒蝉杀准备开始，游戏玩法请见群公告。输入 加入 以参与游戏。当前为11人局。不要发表情包！！！")
+        else:
             return
+
+        while len(player_list) < len(id_list):
+            @Filter(GroupMessage)
+            def waiter_join(event_n: GroupMessage):
+                if str(event_n.message_chain) == '停止' and event_n.sender.id in admin:
+
+                    return 1
+                if str(event_n.message_chain) == '加入':
+                    if event_n.sender.id in [player['qq'] for player in player_list]:
+                        return 0
+                    player_list.append({'id': i, 'qq': event_n.sender.id})
+                    return event_n.sender.id
+
+            attender_id = await inc.wait(waiter_join)
+            if attender_id == 1:
+                await bot.send_group_message(event.group.id, ['游戏已停止'])
+                init()
+                return
+            if attender_id == 0:
+                await bot.send_group_message(event.group.id, ["请不要重复报名"])
+            else:
+                await bot.send_group_message(event.group.id,
+                                             [At(attender_id), " 报名成功！当前报名人数为：", str(len(player_list))])
+            i += 1
+        await bot.send_group_message(event.group.id, "人数已凑齐，游戏将在5秒钟后开始！")
+        sleep(5)
+        await tell_id(event)
+        distribute(id_list)
+        await tell_character()
+        await tell_company()
+        while await victory(event):
+            await bot.send_group_message(event.group.id, ["第", str(night), "天夜晚开始。"])
+            await tell_action()
+
+            while len(choose_list) < len(player_list):
+                list1 = await inc.wait(choose_action)
+                if list1 == ['停止']:
+                    await bot.send_group_message(event.group.id, ['游戏已停止'])
+                    init()
+                    return
+                if list1 == ['结束']:
+                    await bot.send_group_message(event.group.id, ['选择阶段结束'])
+                    break
+
+                msg1 = list1[0]
+                sender_id = list1[1]
+                print('choose:', choose_list)
+                await bot.send_friend_message(sender_id, msg1)
+
+            choose_list.clear()
+            calculate(actions)
+            cal_effect()
+            print([player_s['character'].life for player_s in player_list])
+            for player in player_list:
+                if player['character_id'] == 3:
+                    print('preventM:', player['character'].prevent)
+                if player['character_id'] == 4:
+                    print('preventS:', player['character'].prevent)
+                if player['character_id'] == 8:
+                    print('preventS:', player['character'].prevent)
+
+            await tell_check()
+            await tell_check_detail()
+            await tell_stop()
+            new_death = judge_death()
+            print(new_death)
+            await tell_result(event, new_death)
+            await broadcast_alive(event)
+
+            if not await victory(event):
+                break
+            await bot.send_group_message(event.group.id, ["进入讨论阶段"])
+            sleep(5)
+            await bot.send_group_message(event.group.id, ["讨论阶段结束，开始投票。"])
+            if len(satoshi_qq) > 0:
+                voter = len(player_list) + 1
+            else:
+                voter = len(player_list)
+            while len(voter_list) < voter:
+                msg = await inc.wait(vote)
+                if msg == ['停止']:
+                    await bot.send_group_message(event.group.id, ['游戏已停止'])
+                    init()
+                    return
+                if msg == ['结束']:
+                    break
+                if not msg == []:
+                    await bot.send_group_message(event.group.id, msg)
+
+            await vote_result(event)
+            await broadcast_alive(event)
+            voter_list.clear()
+            night += 1
+            disable_akasaka(night)
+            disable_hanyuu(night)
+            cooling_down()
+        init()
+        return
 
 
     bot.run()

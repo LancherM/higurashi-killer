@@ -1,130 +1,208 @@
 
 
 class Character:
-    id = 0
-    name = ''
-    camp = ''
-    life = 1
-    is_killer = False
-    is_alive = True
-    is_god = False
-    abilities = {}
+    def __init__(self):
+        self.id = 0
+        self.name = ''
+        self.camp = ''
+        self.life = 1
+        self.is_alive = True
+        self.is_god = False
+        self.abilities = {}
 
 
 class Keiichi(Character):
-    id = 1
-    name = '圭一'
-    camp = '主角团'
-    freeze = 1
-    abilities = {'查验': 'check', '阻止': 'stop_k'}
+
+    def __init__(self):
+        super(Character, self).__init__()
+        self.is_alive = True
+        self.life = 1
+        self.id = 1
+        self.name = '圭一'
+        self.camp = '主角团'
+        self.freeze =1
+        self.abilities = {'查验': 'check', '阻止': 'stop_k'}
+        self.is_god = True
 
 
 class Rena(Character):
-    id = 2
-    name = '蕾娜'
-    camp = '主角团'
-    freeze = 1
-    abilities = {'查验': 'check', '刀': 'kill_r'}
+
+    def __init__(self):
+        super(Character, self).__init__()
+        self.is_alive = True
+        self.id = 2
+        self.life = 1
+        self.name = '蕾娜'
+        self.camp = '主角团'
+        self.freeze = 1
+        self.abilities = {'查验': 'check', '刀': 'kill_r'}
+        self.is_god = True
 
 
 class Mion(Character):
-    id = 3
-    name = '魅音'
-    camp = '主角团'
-    prevent = 0
-    abilities = {'保护': 'protect'}
+    def __init__(self):
+        super(Character, self).__init__()
+        self.is_alive = True
+        self.id = 3
+        self.life = 1
+        self.name = '魅音'
+        self.camp = '主角团'
+        self.prevent = 0
+        self.abilities = {'保护': 'protect'}
+        self.is_god = False
 
 
 class Satoko(Character):
-    id = 4
-    name = '沙都子'
-    camp = '主角团'
-    prevent = 0
-    abilities = {'阻止': 'stop'}
+    def __init__(self):
+        super(Character, self).__init__()
+        self.is_alive = True
+        self.id = 4
+        self.life = 1
+        self.name = '沙都子'
+        self.camp = '主角团'
+        self.prevent = 0
+        self.abilities = {'阻止': 'stop'}
+        self.is_god = False
 
 
 class Akasaka(Character):
-    id = 5
-    name = '赤坂'
-    camp = '中立'
-    abilities = {}
-    is_god = True
+    def __init__(self):
+        super(Character, self).__init__()
+        self.is_alive = True
+        self.id = 5
+        self.life = 1
+        self.name = '赤坂'
+        self.camp = '中立'
+        self.is_god = True
+        self.abilities = {}
 
 
 class Ritsuko(Character):
-    id = 6
-    name = '律子'
-    camp = '杀人狂'
-    freeze = 1
-    life = 2
-    abilities = {'刀': 'kill'}
+    def __init__(self):
+        super(Character, self).__init__()
+        self.is_alive = True
+        self.id = 6
+        self.life = 1
+        self.name = '律子'
+        self.camp = '杀人狂'
+        self.freeze = 1
+        self.abilities = {'刀': 'kill'}
+        self.is_god = False
 
 
 class Dog(Character):
-    id = 7
-    name = '山狗队员'
-    camp = '山狗'
-    abilities = {'刀': 'kill'}
+    def __init__(self):
+        super(Character, self).__init__()
+        self.is_alive = True
+        self.id = 7
+        self.life = 1
+        self.name = '山狗队员'
+        self.camp = '山狗'
+        self.abilities = {'刀': 'kill'}
+        self.is_god = False
 
 
 class Takano(Character):
-    id = 8
-    name = '鹰野'
-    is_god = True
-    prevent = 0
-    camp = '山狗'
-    abilities = {'刀': 'kill_t', '阻止': 'stop'}
+    def __init__(self):
+        super(Character, self).__init__()
+        self.is_alive = True
+        self.id = 8
+        self.life = 1
+        self.name = '鹰野'
+        self.prevent = 0
+        self.camp = '山狗'
+        self.is_god = True
+        self.abilities = {'刀': 'kill_t', '阻止': 'stop'}
 
 
 class Rika(Character):
-    id = 9
-    name = '梨花'
-    camp = '主角团'
-    life = 2
-    abilities = {}
+    def __init__(self):
+        super(Character, self).__init__()
+        self.is_alive = True
+        self.id = 9
+        self.name = '梨花'
+        self.life = 2
+        self.camp = '主角团'
+        self.abilities = {}
+        self.is_god = False
 
 
 class Teppei(Character):
-    id = 10
-    name = '铁平'
-    camp = '杀人狂'
-    is_god = True
-    abilities = {'刀': 'kill'}
+    def __init__(self):
+        super(Character, self).__init__()
+        self.is_alive = True
+        self.id = 10
+        self.life = 1
+        self.name = '铁平'
+        self.is_god = True
+        self.camp = '杀人狂'
+        self.abilities = {'刀': 'kill'}
+
 
 
 class Okonogi(Character):
-    id = 11
-    name = '小此木'
-    camp = '山狗'
-    life = 2
-    cooling = {'check_o': 0, 'kill_o': 0}
-    abilities = {'查验': 'check_o', '刀': 'kill_o'}
+    def __init__(self):
+        super(Character, self).__init__()
+        self.is_alive = True
+        self.id = 11
+        self.name = '小此木'
+        self.life = 2
+        self.camp = '山狗'
+        self.cooling = {'check_o': 0, 'kill_o': 0}
+        self.abilities = {'查验': 'check_o', '刀': 'kill_o'}
+        self.is_god = False
 
 
 class Shion(Character):
-    id = 12
-    name = '诗音'
-    camp = '主角团'
-    cooling = {'kill_o': 0}
-    abilities = {'刀': 'kill_o'}
+    def __init__(self):
+        super(Character, self).__init__()
+        self.is_alive = True
+        self.id = 12
+        self.life = 1
+        self.name = '诗音'
+        self.camp = '主角团'
+        self.cooling = {'kill_o': 0}
+        self.abilities = {'刀': 'kill_o'}
+        self.is_god = False
 
 
 class Hanyuu(Character):
-    id = 13
-    name = '羽入'
-    camp = '主角团'
-    is_god = True
-    freeze = 1
-    abilities = {'阻止': 'stop_h'}
+    def __init__(self):
+        super(Character, self).__init__()
+        self.is_alive = True
+        self.id = 13
+        self.life = 1
+        self.name = '羽入'
+        self.camp = '主角团'
+        self.is_god = True
+        self.freeze = 1
+        self.abilities = {'保护': 'stop_h'}
 
 
 class Ooishi(Character):
-    id = 14
-    name = '大石'
-    camp = '中立'
-    freeze = 1
-    cooling = {'check_o': 0}
-    abilities = {'查验': 'check_o', '刀': 'kill_oo'}
+    def __init__(self):
+        super(Character, self).__init__()
+        self.is_alive = True
+        self.id = 14
+        self.life = 1
+        self.name = '大石'
+        self.camp = '中立'
+        self.freeze = 1
+        self.cooling = {'check_o': 0}
+        self.abilities = {'查验': 'check_o', '刀': 'kill_oo'}
+        self.is_god = False
+
+
+class Satoshi(Character):
+    def __init__(self):
+        super(Character, self).__init__()
+        self.is_alive = True
+        self.id = 15
+        self.life = 1
+        self.name = '悟史'
+        self.camp = '主角团'
+        self.abilities = {}
+        self.is_god = False
 
 
 def init(character_id):
@@ -156,6 +234,8 @@ def init(character_id):
         return Hanyuu()
     elif character_id == 14:
         return Ooishi()
+    elif character_id == 15:
+        return Satoshi()
 
 
 
