@@ -20,6 +20,9 @@ class Keiichi(Character):
         self.is_god = True
 
 
+
+
+
 class Rena(Character):
     def __init__(self):
         super(Rena, self).__init__()
@@ -204,6 +207,27 @@ class Shion_l5(Character):
         self.abilities = {'刀': 'kill_s'}
 
 
+class Nacumi(Character):
+    def __init__(self):
+        super(Nacumi, self).__init__()
+        self.id = 20
+        self.name = '夏美'
+        self.camp = '主角团'
+        self.cooling = {'kill_na': 0}
+        self.abilities = {'刀': 'kill_na'}
+
+
+class Cando_l5(Character):
+    def __init__(self):
+        super(Cando_l5, self).__init__()
+        self.id = 21
+        self.name = 'L5监督'
+        self.camp = '杀人狂'
+        self.life = 2
+        self.cooling = {'kill_ca': 0}
+        self.abilities = {'刀': 'kill_ca'}
+
+
 def init(character_id):
     if character_id == 1:
         return Keiichi()
@@ -243,3 +267,7 @@ def init(character_id):
         return Rena_l5()
     elif character_id == 19:
         return Shion_l5()
+    elif character_id == 20:
+        return Nacumi()
+    elif character_id == 21:
+        return Cando_l5()
