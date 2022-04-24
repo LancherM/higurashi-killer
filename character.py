@@ -6,6 +6,7 @@ class Character:
         self.life = 1
         self.is_alive = True
         self.is_god = False
+        self.l5 = False
         self.abilities = {}
 
 
@@ -19,8 +20,11 @@ class Keiichi(Character):
         self.abilities = {'查验': 'check', '阻止': 'stop_k'}
         self.is_god = True
 
-
-
+    def l5_change(self):
+        self.name = 'L5圭一'
+        self.freeze = 1
+        self.l5 = True
+        self.abilities = {'刀': 'kill_k'}
 
 
 class Rena(Character):
@@ -33,25 +37,46 @@ class Rena(Character):
         self.abilities = {'查验': 'check', '刀': 'kill_r'}
         self.is_god = True
 
+    def l5_change(self):
+        self.name = 'L5蕾娜'
+        self.freeze = 1
+        self.l5 = True
+        self.abilities = {'查验': 'check_r', '刀': 'kill_r5'}
+
+
 
 class Mion(Character):
     def __init__(self):
         super(Mion, self).__init__()
+        self.freeze = 0
         self.id = 3
         self.name = '魅音'
         self.camp = '主角团'
-        self.prevent = 0
+        self.prevent = [0, 0]
         self.abilities = {'保护': 'protect'}
+
+    def l5_change(self):
+        self.name = 'L5魅音'
+        self.freeze = 1
+        self.l5 = True
+        self.abilities = {'刀': 'kill_m5'}
 
 
 class Satoko(Character):
     def __init__(self):
         super(Satoko, self).__init__()
+        self.freeze = 0
         self.id = 4
         self.name = '沙都子'
         self.camp = '主角团'
-        self.prevent = 0
+        self.prevent = [0, 0]
         self.abilities = {'阻止': 'stop'}
+        
+    def l5_change(self):
+        self.freeze = 1
+        self.name = 'L5沙都子'
+        self.l5 = True
+        self.abilities = {'刀': 'kill_s5'}
 
 
 class Akasaka(Character):
@@ -62,6 +87,7 @@ class Akasaka(Character):
         self.camp = '中立'
         self.is_god = True
         self.abilities = {}
+
 
 
 class Ritsuko(Character):
@@ -88,7 +114,7 @@ class Takano(Character):
         super(Takano, self).__init__()
         self.id = 8
         self.name = '鹰野'
-        self.prevent = 0
+        self.prevent = [0, 0]
         self.camp = '山狗'
         self.is_god = True
         self.abilities = {'刀': 'kill_t', '阻止': 'stop'}
@@ -101,7 +127,8 @@ class Rika(Character):
         self.name = '梨花'
         self.life = 2
         self.camp = '主角团'
-        self.abilities = {}
+        self.resurrect = False
+        self.abilities = {'复活': 'resurrect'}
 
 
 class Teppei(Character):
@@ -134,6 +161,11 @@ class Shion(Character):
         self.cooling = {'kill_o': 0}
         self.abilities = {'刀': 'kill_o'}
 
+    def l5_change(self):
+        self.name = 'L5诗音'
+        self.l5 = True
+        self.abilities = {'刀': 'kill_s'}
+
 
 class Hanyuu(Character):
     def __init__(self):
@@ -160,10 +192,17 @@ class Ooishi(Character):
 class Satoshi(Character):
     def __init__(self):
         super(Satoshi, self).__init__()
+        self.freeze = 0
         self.id = 15
         self.name = '悟史'
         self.camp = '主角团'
         self.abilities = {}
+
+    def l5_change(self):
+        self.freeze = 1
+        self.name = 'L5悟史'
+        self.l5 = True
+        self.abilities = {"刀": 'kill_sa5'}
 
 
 class Nomura(Character):
@@ -221,11 +260,41 @@ class Cando_l5(Character):
     def __init__(self):
         super(Cando_l5, self).__init__()
         self.id = 21
-        self.name = 'L5监督'
+        self.name = '水坝监督'
         self.camp = '杀人狂'
         self.life = 2
         self.cooling = {'kill_ca': 0}
         self.abilities = {'刀': 'kill_ca'}
+
+
+class Tomitake(Character):
+    def __init__(self):
+        super(Tomitake, self).__init__()
+        self.id = 22
+        self.name = '富竹'
+        self.camp = '中立'
+        self.freeze = 1
+        self.abilities = {'刀': 'kill_r'}
+
+class Irie(Character):
+    def __init__(self):
+        super(Irie, self).__init__()
+        self.id = 23
+        self.name = '入江'
+        self.camp = '中立'
+        self.freeze = 1
+        self.cooling = {'protect_i': 0}
+        self.abilities = {'阻止': 'stop_i','保护': 'protect_i'}
+
+
+class Sniper(Character):
+    def __init__(self):
+        super(Sniper, self).__init__()
+        self.id = 24
+        self.name = '山狗狙击手'
+        self.camp = '山狗'
+        self.killable = False
+        self.abilities = {'刀': 'kill_sn'}
 
 
 def init(character_id):
@@ -271,3 +340,9 @@ def init(character_id):
         return Nacumi()
     elif character_id == 21:
         return Cando_l5()
+    elif character_id == 22:
+        return Tomitake()
+    elif character_id == 23:
+        return Irie()
+    elif character_id == 24:
+        return Sniper()
