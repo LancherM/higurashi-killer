@@ -1,5 +1,6 @@
 class Character:
     def __init__(self):
+        self.cooling = None
         self.id = 0
         self.name = ''
         self.camp = ''
@@ -7,7 +8,19 @@ class Character:
         self.is_alive = True
         self.is_god = False
         self.l5 = False
+        self.is_zombie = False
         self.abilities = {}
+
+    def infect(self):
+        self.name = '感染者'
+        self.camp = '感染者'
+        self.is_zombie = True
+        self.is_god = False
+        self.cooling = {'kill_o': 0}
+        self.abilities = {'刀': 'kill_o'}
+        self.l5 = True
+        if self.life > 0:
+            self.life = 1
 
 
 class Keiichi(Character):
@@ -85,8 +98,8 @@ class Akasaka(Character):
         self.id = 5
         self.name = '赤坂'
         self.camp = '中立'
-        self.is_god = True
-        self.abilities = {}
+        self.freeze = 1
+        self.abilities = {'阻止': 'stop_ak'}
 
 
 
@@ -210,9 +223,10 @@ class Nomura(Character):
         super(Nomura, self).__init__()
         self.id = 16
         self.name = '野村'
-        self.cooling = {'stop_n': 0}
         self.camp = '主角团'  # 挂羊头卖狗肉，其实还是山狗
-        self.abilities = {'刀': 'kill_t', '阻止': 'stop_n'}
+        self.cooling = {'kill_no': 0}
+        self.freeze2 = 1
+        self.abilities = {'刀': 'kill_no', '复活': 'resurrect_no'}
 
 
 class Keiichi_l5(Character):
@@ -284,7 +298,7 @@ class Irie(Character):
         self.camp = '中立'
         self.freeze = 1
         self.cooling = {'protect_i': 0}
-        self.abilities = {'阻止': 'stop_i','保护': 'protect_i'}
+        self.abilities = {'阻止': 'stop_i', '保护': 'protect_i'}
 
 
 class Sniper(Character):
@@ -295,6 +309,41 @@ class Sniper(Character):
         self.camp = '山狗'
         self.killable = False
         self.abilities = {'刀': 'kill_sn'}
+
+
+class Akatsuki(Character):
+    def __init__(self):
+        super(Akatsuki, self).__init__()
+        self.id = 25
+        self.name = '晓'
+        self.camp = '主角团'
+        self.freeze = 2
+        self.abilities = {'阻止': 'stop_aka'}
+
+
+class Mother1(Character):
+    def __init__(self):
+        super(Mother1, self).__init__()
+        self.id = 26
+        self.name = '田村媛命'
+        self.camp = '感染者'
+        self.life = 2
+        self.freeze = 3
+        self.freeze1 = 1
+        self.abilities = {'感染': 'infect'}
+
+
+class Mother2(Character):
+    def __init__(self):
+        super(Mother2, self).__init__()
+        self.id = 27
+        self.name = '采'
+        self.camp = '中立'
+        self.is_god = True
+        self.freeze = 1
+        self.prevent = [0, 0]
+        self.abilities = {'感染': 'infect_2', '阻止': 'stop'}
+
 
 
 def init(character_id):
@@ -346,3 +395,9 @@ def init(character_id):
         return Irie()
     elif character_id == 24:
         return Sniper()
+    elif character_id == 25:
+        return Akatsuki()
+    elif character_id == 26:
+        return Mother1()
+    elif character_id == 27:
+        return Mother2()
